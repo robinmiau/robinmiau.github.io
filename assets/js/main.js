@@ -8,22 +8,25 @@ const audioModule = (() => {
   let animationFrameId = null;
 
   const createAudioContext = () => {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    analyser.connect(audioContext.destination);
+    try {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.connect(audioContext.destination);
+      }
+    } catch (error) {
+      console.error('Failed to create AudioContext:', error);
+    }
   };
 
   const isAudioPlaying = () => {
-    return currentAudio && !currentAudio.paused;
+    return currentAudio && !currentAudio.paused && !currentAudio.ended;
   };
 
   const initializeAudio = () => {
-    if (!audioContext) {
-      createAudioContext();
-    }
+    createAudioContext();
 
     const sounds = ["senpai.mp3", "senpai2.mp3", "laugh.mp3"];
     const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
@@ -57,14 +60,12 @@ const audioModule = (() => {
   };
 
   const resetAvatar = () => {
-    if (isAudioPlaying()) {
-      stopAudio();
-    }
+    stopAudio();
     avatar.style.transform = "scale(1)";
   };
 
   const stopAudio = () => {
-    if (currentAudio) {
+    if (currentAudio && currentAudio.currentTime > 0) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
       currentAudio = null;
@@ -84,7 +85,7 @@ const audioModule = (() => {
 avatar.addEventListener("click", () => {
   if (audioModule.isAudioPlaying()) {
     audioModule.resetAvatar();
-  } else {
+  } else if (!audioModule.currentAudio) {
     audioModule.initializeAudio();
   }
 });
