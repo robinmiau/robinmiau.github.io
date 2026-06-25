@@ -2,10 +2,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const html = document.documentElement;
   const themeToggle = document.querySelector('.theme-toggle');
   const avatar = document.getElementById('avatar');
+  let activeBubble = null;
+  let activeBubbleAnchor = null;
 
-  // Apply saved theme
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  html.setAttribute('data-theme', savedTheme);
+  const applyTheme = (theme) => {
+    html.classList.add('theme-switching');
+    html.setAttribute('data-theme', theme);
+    html.offsetHeight;
+    html.classList.remove('theme-switching');
+  };
+
+  // Keep theme in sync if the early head script could not read storage.
+  try {
+    applyTheme(localStorage.getItem('theme') || html.getAttribute('data-theme') || 'dark');
+  } catch {
+    applyTheme(html.getAttribute('data-theme') || 'dark');
+  }
 
   // Calculate and display age
   const calculateAge = () => {
@@ -23,11 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ageElement) ageElement.textContent = calculateAge();
 
   // Typing effect
-  const titles = ['Web Developer', 'Server Administrator', 'Reverse Engineer'];
+  const titles = ['Web Developer', 'Game Developer', 'Server Administrator'];
   const typedTextElement = document.getElementById('typed-text');
   let titleIndex = 0;
-  let charIndex = 0;
-  let isDeleting = false;
+  let charIndex = titles[0].length;
+  let isDeleting = true;
+  typedTextElement.textContent = titles[0];
 
   const type = () => {
     const currentTitle = titles[titleIndex];
@@ -50,17 +63,37 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(type, isDeleting ? 50 : 100);
   };
 
-  setTimeout(type, 500);
+  setTimeout(type, 3500);
 
   // Theme toggle
   themeToggle.addEventListener('click', () => {
     const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    showSpeechBubble(newTheme === 'light' ? 'MY EYES' : 'Much better', avatar);
+    applyTheme(newTheme);
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch {
+      // Theme still changes for this page even when storage is unavailable.
+    }
+    showSpeechBubble(newTheme === 'light' ? 'Too bright' : 'Much better', avatar);
   });
 
   // Speech bubble
+  const positionSpeechBubble = (bubble, element) => {
+    const rect = element.getBoundingClientRect();
+    const viewportPadding = 16;
+    const centeredLeft = rect.left + rect.width / 2;
+    const minLeft = bubble.offsetWidth / 2 + viewportPadding;
+    const maxLeft = window.innerWidth - bubble.offsetWidth / 2 - viewportPadding;
+    bubble.style.left = `${Math.min(Math.max(centeredLeft, minLeft), maxLeft)}px`;
+    bubble.style.top = `${Math.max(rect.top, bubble.offsetHeight + 24)}px`;
+  };
+
+  const repositionSpeechBubble = () => {
+    if (activeBubble && activeBubbleAnchor) {
+      positionSpeechBubble(activeBubble, activeBubbleAnchor);
+    }
+  };
+
   const showSpeechBubble = (text, element) => {
     document.querySelectorAll('.speech-bubble').forEach(bubble => bubble.remove());
 
@@ -69,24 +102,34 @@ document.addEventListener('DOMContentLoaded', () => {
     bubble.textContent = text;
     document.body.appendChild(bubble);
 
-    const rect = element.getBoundingClientRect();
-    bubble.style.left = `${rect.left + rect.width / 2}px`;
-    bubble.style.top = `${rect.top}px`;
+    activeBubble = bubble;
+    activeBubbleAnchor = element;
+    positionSpeechBubble(bubble, element);
 
-    // Expanding bau effect
     if (text === 'bau') {
       let count = 1;
       const interval = setInterval(() => {
         count++;
         bubble.textContent = 'bau '.repeat(count).trim();
+        repositionSpeechBubble();
       }, 200);
 
       setTimeout(() => {
         clearInterval(interval);
+        if (activeBubble === bubble) {
+          activeBubble = null;
+          activeBubbleAnchor = null;
+        }
         bubble.remove();
       }, 2500);
     } else {
-      setTimeout(() => bubble.remove(), 3000);
+      setTimeout(() => {
+        if (activeBubble === bubble) {
+          activeBubble = null;
+          activeBubbleAnchor = null;
+        }
+        bubble.remove();
+      }, 3000);
     }
   };
 
@@ -127,11 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       const targetTab = tab.getAttribute('data-tab');
-      document.querySelectorAll('.tab, .tab-panel').forEach(el => el.classList.remove('active'));
+      const targetPanel = document.getElementById(targetTab);
+      document.querySelectorAll('.tab, .tab-panel').forEach(el => el.classList.remove('active', 'entering'));
       tab.classList.add('active');
-      document.getElementById(targetTab).classList.add('active');
+      targetPanel.classList.add('active', 'entering');
+      targetPanel.addEventListener('animationend', () => targetPanel.classList.remove('entering'), { once: true });
+      requestAnimationFrame(repositionSpeechBubble);
+      setTimeout(repositionSpeechBubble, 350);
     });
   });
+
+  window.addEventListener('resize', repositionSpeechBubble);
 
   // Discord username copy
   const discordBtn = document.getElementById('discord-btn');

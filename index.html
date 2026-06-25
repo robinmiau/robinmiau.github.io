@@ -8,6 +8,15 @@
   <meta property="og:image" content="https://github.com/robinmiau.png">
   <title>RobinMiau</title>
   <link rel="icon" href="https://github.com/robinmiau.png" type="image/png">
+  <script>
+    (() => {
+      try {
+        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+      } catch {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -120,14 +129,15 @@
       </div>
 
       <div class="tab-panel" id="about">
-        <p class="bio">Hey! I'm Robin, a <span id="age">26</span>-year-old developer from Germany with a passion for web development and server administration.</p>
-        <p class="bio">I enjoy working with Laravel and Node.js to build websites and various tools. I'm a perfectionist when it comes to code and always looking for ways to improve things.</p>
-        <p class="bio">When I'm not coding, you'll find me playing video games or watching anime. I love music, cats, and unhealthy food like Subway and McDonald's.</p>
+        <p class="bio">Hey! I'm Robin, a <strong><span id="age">26</span>-year-old male developer from Germany</strong> with a passion for web development, game development, and server administration.</p>
+        <p class="bio">I use <strong>Laravel</strong> for websites, while <strong>Node.js</strong> is mostly for tools, bots, and smaller utilities. I care a lot about clean code, small details, and making things feel right.</p>
+        <p class="bio">I'm pretty <strong>introverted</strong>: I don't enjoy big crowds, and I'm not very talkative with strangers. When I'm not coding, I'm usually playing video games, watching anime, or listening to music.</p>
+        <p class="bio">I'm also very into <strong>catgirls</strong>, which explains my avatar.</p>
       </div>
 
       <div class="tab-panel" id="projects">
         <div class="project-category">
-          <h3 class="category-title">Virtual Worlds</h3>
+          <h3 class="category-title">Websites</h3>
           <div class="projects-grid">
             <a href="https://www.panfu.me" target="_blank" rel="noopener" class="project-btn">
               <span class="project-name">Panfu.me</span>
@@ -135,14 +145,8 @@
             </a>
             <a href="https://www.oloko.me" target="_blank" rel="noopener" class="project-btn unreleased">
               <span class="project-name">Oloko.me</span>
-              <span class="project-year">???</span>
+              <span class="project-year">In progress</span>
             </a>
-          </div>
-        </div>
-
-        <div class="project-category">
-          <h3 class="category-title">Web Apps</h3>
-          <div class="projects-grid">
             <a href="https://fnfestival.co" target="_blank" rel="noopener" class="project-btn">
               <span class="project-name">FNFestival.co</span>
               <span class="project-year">2024</span>
@@ -170,20 +174,20 @@
           <div class="skill-category">
             <h3 class="category-title">Languages</h3>
             <div class="tags">
-              <span class="tag">JavaScript</span>
               <span class="tag">PHP</span>
+              <span class="tag">JavaScript</span>
               <span class="tag">HTML/CSS</span>
             </div>
           </div>
           <div class="skill-category">
-            <h3 class="category-title">Frameworks & Libraries</h3>
+            <h3 class="category-title">Frameworks & Runtime</h3>
             <div class="tags">
               <span class="tag">Laravel</span>
               <span class="tag">Node.js</span>
               <span class="tag">Vue.js</span>
               <span class="tag">React</span>
-              <span class="tag">Inertia</span>
               <span class="tag">Livewire</span>
+              <span class="tag">Inertia</span>
               <span class="tag">Filament</span>
               <span class="tag">Vite</span>
               <span class="tag">Electron</span>
@@ -191,17 +195,17 @@
             </div>
           </div>
           <div class="skill-category">
-            <h3 class="category-title">Tools & Others</h3>
+            <h3 class="category-title">Infrastructure & Tools</h3>
             <div class="tags">
-              <span class="tag">Git</span>
-              <span class="tag">MySQL</span>
-              <span class="tag">Nginx</span>
               <span class="tag">Linux</span>
+              <span class="tag">Nginx</span>
+              <span class="tag">MySQL</span>
+              <span class="tag">Git</span>
               <span class="tag">VS Code</span>
               <span class="tag">IntelliJ IDEA</span>
+              <span class="tag">Android Studio</span>
               <span class="tag">Termius</span>
               <span class="tag">GameMaker</span>
-              <span class="tag">Android Studio</span>
               <span class="tag">JPEXS</span>
               <span class="tag">Adobe Animate</span>
             </div>
