@@ -1,0 +1,17 @@
+{
+    "tabWidth": 4,
+    "singleQuote": true,
+    "printWidth": 100,
+    "endOfLine": "crlf",
+    "htmlWhitespaceSensitivity": "ignore",
+    "singleAttributePerLine": false,
+    "overrides": [
+        {
+            "files": "*.html",
+            "options": {
+                "printWidth": 140,
+                "singleAttributePerLine": false
+            }
+        }
+    ]
+}
