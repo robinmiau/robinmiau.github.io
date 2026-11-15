@@ -25,17 +25,79 @@ document.querySelector('#discord').addEventListener('click', async () => {
     }
 });
 
+const emoteLayer = document.querySelector('#emote-rain');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+document.querySelector('#avatar').addEventListener('click', () => {
+    if (reducedMotion.matches) {
+        notify(':3');
+        return;
+    }
+
+    const count = Math.min(24, 72 - emoteLayer.childElementCount);
+    for (let index = 0; index < count; index += 1) {
+        const emote = document.createElement('span');
+        emote.className = 'emote';
+        emote.textContent = ':3';
+        emote.style.left = `${Math.random() * 100}%`;
+        emote.style.fontSize = `${22 + Math.random() * 20}px`;
+        emoteLayer.append(emote);
+
+        const duration = 10 + Math.random() * 4;
+        const peakTime = 2 + Math.random();
+        const height = innerHeight * (0.55 + Math.random() * 0.4);
+        const drift = (Math.random() - 0.5) * innerWidth * 0.35;
+        const rotation = (Math.random() - 0.5) * 100;
+        const frames = [];
+
+        for (let step = 0; step <= 40; step += 1) {
+            const progress = step / 40;
+            const time = duration * progress;
+            const y =
+                time <= peakTime
+                    ? -height * (1 - (1 - time / peakTime) ** 2)
+                    : -height + (height + 96) * ((time - peakTime) / (duration - peakTime)) ** 2;
+            frames.push({
+                transform: `translate(${drift * progress}px, ${y}px) rotate(${rotation * progress}deg)`,
+                opacity: progress > 0.9 ? (1 - progress) * 5 : 0.5,
+                offset: progress,
+            });
+        }
+
+        const animation = emote.animate(frames, {
+            duration: duration * 1000,
+            delay: Math.random() * 250,
+            easing: 'linear',
+            fill: 'backwards',
+        });
+        animation.onfinish = () => emote.remove();
+        animation.oncancel = () => emote.remove();
+    }
+});
+
 // Explicit URLs let Vite include and fingerprint the randomly selected illustrations.
 const characters = [
     {
+        image: new URL('../images/michiru.png', import.meta.url).href,
+        name: 'Michiru Kagemori',
+        width: 340,
+        top: 0,
+        right: -155,
+    },
+    {
+        image: new URL('../images/nazuna.png', import.meta.url).href,
+        name: 'Nazuna Hiwatashi',
+        width: 300,
+        top: 0,
+        right: -55,
+    },
+    {
         image: new URL('../images/nagatoro.png', import.meta.url).href,
         name: 'Nagatoro',
-        position: 'center top',
     },
     {
         image: new URL('../images/miku.webp', import.meta.url).href,
         name: 'Hatsune Miku',
-        position: 'center top',
         width: 340,
         top: 16,
         right: -95,
@@ -43,7 +105,6 @@ const characters = [
     {
         image: new URL('../images/emilia.webp', import.meta.url).href,
         name: 'Emilia',
-        position: 'center top',
         width: 330,
         top: -8,
         right: -85,
@@ -51,7 +112,6 @@ const characters = [
     {
         image: new URL('../images/kangel.png', import.meta.url).href,
         name: 'KAngel',
-        position: 'center top',
         width: 240,
         top: 0,
         right: -45,
@@ -59,7 +119,6 @@ const characters = [
     {
         image: new URL('../images/marin.png', import.meta.url).href,
         name: 'Marin Kitagawa',
-        position: 'center top',
         width: 340,
         top: -60,
         right: -90,
@@ -67,7 +126,6 @@ const characters = [
     {
         image: new URL('../images/zero-two.png', import.meta.url).href,
         name: 'Zero Two',
-        position: 'center top',
         width: 240,
         top: 0,
         right: -45,
@@ -75,7 +133,6 @@ const characters = [
     {
         image: new URL('../images/mai.png', import.meta.url).href,
         name: 'Mai Sakurajima',
-        position: 'center top',
         width: 210,
         top: -45,
         right: -35,
@@ -85,7 +142,6 @@ const character = characters[Math.floor(Math.random() * characters.length)];
 // Create only the selected image; no default character is downloaded or flashed.
 const characterImage = new Image();
 characterImage.className = 'watching-character';
-characterImage.id = 'watching-character';
 characterImage.decoding = 'async';
 characterImage.addEventListener(
     'load',
@@ -97,7 +153,6 @@ characterImage.addEventListener(
 characterImage.src = character.image;
 characterImage.alt = character.name;
 characterImage.title = character.name;
-characterImage.style.objectPosition = character.position;
 characterImage.style.top = `${character.top ?? 0}px`;
 if (character.width) characterImage.style.width = `${character.width}px`;
 if (character.right !== undefined) characterImage.style.right = `${character.right}px`;
@@ -184,9 +239,15 @@ async function loadAnime() {
             const copy = document.createElement('span');
             const title = document.createElement('strong');
             title.textContent = item.title;
-            const progress = document.createElement('small');
-            progress.textContent = `Episode ${item.watched} / ${item.episodes || '?'}`;
-            copy.append(title, progress);
+            copy.append(title);
+            if (item.watched > 0) {
+                const progress = document.createElement('small');
+                progress.textContent =
+                    item.episodes > 0
+                        ? `Episode ${item.watched} / ${item.episodes}`
+                        : `Episode ${item.watched}`;
+                copy.append(progress);
+            }
             row.append(image, copy);
             return row;
         });
@@ -234,22 +295,7 @@ function renderTrack(track, container = document.querySelector('#recent-track'))
     title.textContent = track.title;
     const artist = document.createElement('p');
     artist.textContent = track.artist;
-    const time = document.createElement('time');
-    if (track.nowPlaying) {
-        time.textContent = 'Listening now';
-    } else if (track.playedAt) {
-        const date = new Date(track.playedAt);
-        time.dateTime = date.toISOString();
-        time.textContent =
-            new Intl.DateTimeFormat('en-GB', {
-                timeZone: 'Europe/Berlin',
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-            }).format(date) + ' · Berlin';
-    }
-    info.append(title, artist, time);
+    info.append(title, artist);
     link.append(info);
     container.replaceChildren(link);
 }
@@ -276,10 +322,6 @@ async function loadMusic() {
             album: track.album['#text'],
             image: cover?.['#text'] || '',
             url: track.url,
-            nowPlaying: track['@attr']?.nowplaying === 'true',
-            playedAt: track.date?.uts
-                ? new Date(Number(track.date.uts) * 1000).toISOString()
-                : null,
         });
     } catch {
         const container = document.querySelector('#recent-track');
